@@ -64,6 +64,10 @@ void Error_Handler(void);
 #define LightSensor_GPIO_Port GPIOC
 #define BtnB_Pin GPIO_PIN_3
 #define BtnB_GPIO_Port GPIOC
+#define BtnDown_Pin GPIO_PIN_5
+#define BtnDown_GPIO_Port GPIOA
+#define BtnUp_Pin GPIO_PIN_6
+#define BtnUp_GPIO_Port GPIOA
 #define BtnLeft_Pin GPIO_PIN_7
 #define BtnLeft_GPIO_Port GPIOA
 #define Temperature_Pin GPIO_PIN_5
@@ -72,8 +76,8 @@ void Error_Handler(void);
 #define FlashCS_GPIO_Port GPIOB
 #define BtnRight_Pin GPIO_PIN_2
 #define BtnRight_GPIO_Port GPIOB
-#define BtnDown_Pin GPIO_PIN_10
-#define BtnDown_GPIO_Port GPIOB
+#define DisplayRst_Pin GPIO_PIN_10
+#define DisplayRst_GPIO_Port GPIOB
 #define DisplayCS_Pin GPIO_PIN_12
 #define DisplayCS_GPIO_Port GPIOB
 #define SDDetect_Pin GPIO_PIN_8
