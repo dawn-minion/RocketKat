@@ -1,8 +1,10 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 #include "Display.h"
 #include "stm32f4xx_hal.h"
 #include "main.h"
+#include "rocketcat.h"
 
 #define DELAY 0x80
 #define COL0(r, g, b) ((((r) >> 3) << 11) | (((g) >> 2) << 5) | ((b) >> 3))
@@ -257,6 +259,23 @@ void Display::draw() {
 	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
     }
 
+    this->setCS(1);
+}
+
+void Display::drawLogo() {
+    char cmd[] = {ST7735_RAMWR};
+    sendCmd(cmd, 1);
+
+    this->setDC(1);
+    this->setCS(0);
+
+    uint8_t *p = fb;
+    for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT * 2; i+=2) {
+	    *(volatile uint8_t*)&SPI2->DR = rocketcat.pixel_data[i+1];
+	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
+	    *(volatile uint8_t*)&SPI2->DR = rocketcat.pixel_data[i];
+	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
+    }
 
     this->setCS(1);
 }
@@ -310,9 +329,11 @@ void Display::init() {
 
     memset(fb, 0, sizeof fb);
 
-    drawBar(0, 52, 7);
-    drawBar(107, 14, 4);
-    print(5, 70, 1, "Hallo!");
-    print(3, 110, 1, "Hoe gaat het er mee?");
-    draw();
+    //drawBar(0, 128, 2);
+    //print(5, 70, 1, "Hallo!");
+    //print(3, 110, 1, "Hoe gaat het er mee?");
+
+    //draw();
+    drawLogo();
+    HAL_Delay(250);
 }

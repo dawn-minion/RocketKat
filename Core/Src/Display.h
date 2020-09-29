@@ -60,6 +60,7 @@ private:
     void configure(uint8_t madctl, uint32_t frmctrl);
     void setAddrWindow(int x, int y, int w, int h);
     void draw();
+    void drawLogo();
     void printch(int x, int y, int col, const uint8_t* fnt);
 
 public:
