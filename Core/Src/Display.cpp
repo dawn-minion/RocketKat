@@ -246,13 +246,17 @@ void Display::draw() {
     this->setCS(0);
 
     uint8_t *p = fb;
-    for (int i = 0; i < DISPLAY_WIDTH; ++i) {
-        for (int j = 0; j < DISPLAY_HEIGHT; ++j) {
-            uint16_t color = palette[*p++ & 0xf];
-            uint8_t cc[] = {color >> 8, color & 0xff};
-            HAL_SPI_Transmit(&hspi2, cc, 2, 1000);
-        }
+    for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT * 2; i+=2) {
+	    uint16_t color = palette[*p++ & 0xf];
+	    uint8_t cc[] = {color >> 8, color & 0xff};
+
+	    *(volatile uint8_t*)&SPI2->DR = cc[0];
+	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
+	    
+	    *(volatile uint8_t*)&SPI2->DR = cc[1];
+	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
     }
+
 
     this->setCS(1);
 }

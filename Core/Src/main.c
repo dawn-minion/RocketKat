@@ -99,7 +99,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  //MX_DMA_Init();
+  MX_DMA_Init();
   MX_I2C1_Init();
   MX_RTC_Init();
   MX_SPI2_Init();
@@ -116,6 +116,9 @@ int main(void)
   display.init();
   while (1)
   {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -138,7 +141,7 @@ void SystemClock_Config(void)
   * in the RCC_OscInitTypeDef structure.
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_BYPASS;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
@@ -159,7 +162,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -262,11 +265,11 @@ static void MX_SPI2_Init(void)
   hspi2.Init.CLKPolarity = SPI_POLARITY_HIGH;
   hspi2.Init.CLKPhase = SPI_PHASE_2EDGE;
   hspi2.Init.NSS = SPI_NSS_SOFT;
-  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_4;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
-  hspi2.Init.CRCPolynomial = 0;
+  hspi2.Init.CRCPolynomial = 10;
   if (HAL_SPI_Init(&hspi2) != HAL_OK)
   {
     Error_Handler();
@@ -350,7 +353,8 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, BtnDown_Pin|BtnUp_Pin|DisplayDC_Pin|SDCS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, FlashCS_Pin|DisplayCS_Pin|DisplayBL_Pin|LED_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, FlashCS_Pin|DisplayRst_Pin|DisplayCS_Pin|DisplayBL_Pin
+                          |LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : AccelInt_Pin LightSensor_Pin BtnB_Pin Temperature_Pin
                            SDDetect_Pin */
@@ -373,14 +377,16 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(BtnLeft_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : FlashCS_Pin DisplayCS_Pin DisplayBL_Pin LED_Pin */
-  GPIO_InitStruct.Pin = FlashCS_Pin|DisplayRst_Pin|DisplayCS_Pin|DisplayBL_Pin|LED_Pin;
+  /*Configure GPIO pins : FlashCS_Pin DisplayRst_Pin DisplayCS_Pin DisplayBL_Pin
+                           LED_Pin */
+  GPIO_InitStruct.Pin = FlashCS_Pin|DisplayRst_Pin|DisplayCS_Pin|DisplayBL_Pin
+                          |LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BtnRight_Pin DisplayRst_Pin BtnA_Pin */
+  /*Configure GPIO pins : BtnRight_Pin BtnA_Pin */
   GPIO_InitStruct.Pin = BtnRight_Pin|BtnA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
