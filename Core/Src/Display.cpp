@@ -111,26 +111,7 @@ const uint8_t font8[] = {
 
 extern SPI_HandleTypeDef hspi2;
 
-uint8_t fb[168 * 128];
-
-const uint16_t palette[] = {
-    COL(0x000000), // 0
-    COL(0xffffff), // 1
-    COL(0xff2121), // 2
-    COL(0xff93c4), // 3
-    COL(0xff8135), // 4
-    COL(0xfff609), // 5
-    COL(0x249ca3), // 6
-    COL(0x78dc52), // 7
-    COL(0x003fad), // 8
-    COL(0x87f2ff), // 9
-    COL(0x8e2ec4), // 10
-    COL(0xa4839f), // 11
-    COL(0x5c406c), // 12
-    COL(0xe5cdc4), // 13
-    COL(0x91463d), // 14
-    COL(0x000000), // 15
-};
+uint8_t fb[DISPLAY_WIDTH * DISPLAY_HEIGHT * 2];
 
 static const uint8_t initCmds[] = {
     ST7735_SWRESET,   DELAY,  //  1: Software reset, 0 args, w/delay
@@ -220,24 +201,10 @@ void Display::configure(uint8_t madctl, uint32_t frmctr1) {
 }
 
 void Display::setAddrWindow(int x, int y, int w, int h) {
-    uint8_t cmd0[] = {ST7735_RASET, 0, (uint8_t)x, 0, (uint8_t)(x + w - 1)};
-    uint8_t cmd1[] = {ST7735_CASET, 0, (uint8_t)y, 0, (uint8_t)(y + h - 1)};
+    uint8_t cmd0[] = {ST7735_RASET, 0, x, 0, y + h - 1};
+    uint8_t cmd1[] = {ST7735_CASET, 0, y, 0, x + w - 1};
     this->sendCmd(cmd1, sizeof(cmd1));
     this->sendCmd(cmd0, sizeof(cmd0));
-}
-
-void Display::printch(int x, int y, int col, const uint8_t *fnt) {
-    for (int i = 0; i < 6; ++i) {
-        uint8_t *p = fb + (x + i) * DISPLAY_HEIGHT + y;
-        uint8_t mask = 0x01;
-        for (int j = 0; j < 8; ++j) {
-            if (*fnt & mask)
-                *p = col;
-            p++;
-            mask <<= 1;
-        }
-        fnt++;
-    }
 }
 
 void Display::draw() {
@@ -247,15 +214,8 @@ void Display::draw() {
     this->setDC(1);
     this->setCS(0);
 
-    uint8_t *p = fb;
-    for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT * 2; i+=2) {
-	    uint16_t color = palette[*p++ & 0xf];
-	    uint8_t cc[] = {color >> 8, color & 0xff};
-
-	    *(volatile uint8_t*)&SPI2->DR = cc[0];
-	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
-	    
-	    *(volatile uint8_t*)&SPI2->DR = cc[1];
+    for (size_t i = 0; i < sizeof fb; i++) {
+	    *(volatile uint8_t*)&SPI2->DR = fb[i];
 	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
     }
 
@@ -263,48 +223,9 @@ void Display::draw() {
 }
 
 void Display::drawLogo() {
-    char cmd[] = {ST7735_RAMWR};
-    sendCmd(cmd, 1);
-
-    this->setDC(1);
-    this->setCS(0);
-
-    uint8_t *p = fb;
-    for (int i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT * 2; i+=2) {
-	    *(volatile uint8_t*)&SPI2->DR = rocketcat.pixel_data[i+1];
-	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
-	    *(volatile uint8_t*)&SPI2->DR = rocketcat.pixel_data[i];
-	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
-    }
-
-    this->setCS(1);
-}
-
-void Display::print(int x, int y, int col, const char *text) {
-    int x0 = x;
-    while (*text) {
-        char c = *text++;
-        if (c == '\r')
-            continue;
-        if (c == '\n') {
-            x = x0;
-            y += 10;
-            continue;
-        }
-
-        if (c < ' ')
-            c = '?';
-        if (c >= 0x7f)
-            c = '?';
-        c -= ' ';
-        printch(x, y, col, &font8[c * 6]);
-        x += 6;
-    }
-}
-
-void drawBar(int y, int h, int c) {
-    for (int x = 0; x < DISPLAY_WIDTH; ++x) {
-        memset(fb + x * DISPLAY_HEIGHT + y, c, h);
+    for (size_t i = 0; i < sizeof fb; i+=2) {
+	    fb[i] = rocketcat.pixel_data[i+1];
+	    fb[i+1] = rocketcat.pixel_data[i];
     }
 }
 
@@ -317,9 +238,8 @@ void Display::init() {
 
     setBacklight(1);
 
-    uint32_t cfg0 = 0x40;
+    uint32_t cfg0 = 0x40 | 0x20;
     uint32_t frmctr1 = 0x16; 
-    uint32_t palXOR = (cfg0 & 0x1000000) ? 0xffffff : 0x000000;
     uint32_t madctl = cfg0 & 0xff; // 64
     uint32_t offX = (cfg0 >> 8) & 0xff; // 0
     uint32_t offY = (cfg0 >> 16) & 0xff; // 0
@@ -329,11 +249,6 @@ void Display::init() {
 
     memset(fb, 0, sizeof fb);
 
-    //drawBar(0, 128, 2);
-    //print(5, 70, 1, "Hallo!");
-    //print(3, 110, 1, "Hoe gaat het er mee?");
-
-    //draw();
     drawLogo();
-    HAL_Delay(250);
+    draw();
 }
