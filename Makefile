@@ -22,7 +22,7 @@ TARGET = MeowbitRocketCat
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Og
+OPT = -Os
 
 
 #######################################
@@ -70,14 +70,15 @@ Core/Src/system_stm32f4xx.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
-Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
+Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c 
 
 # ASM sources
 ASM_SOURCES =  \
 startup_stm32f401xe.s
 
 CPP_SOURCES = \
-Core/Src/Display.cpp
+Core/Src/Display.cpp \
+Core/Src/Sprite.cpp
 
 #######################################
 # binaries
@@ -164,7 +165,6 @@ LDSCRIPT = STM32F401RETx_FLASH.ld
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
 LDFLAGS = $(MCU) -specs=nano.specs -specs=nosys.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
-
 # default action: build all
 all: $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 

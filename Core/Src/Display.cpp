@@ -111,7 +111,7 @@ const uint8_t font8[] = {
 
 extern SPI_HandleTypeDef hspi2;
 
-uint8_t fb[DISPLAY_WIDTH * DISPLAY_HEIGHT * 2];
+uint16_t fb[DISPLAY_WIDTH * DISPLAY_HEIGHT];
 
 static const uint8_t initCmds[] = {
     ST7735_SWRESET,   DELAY,  //  1: Software reset, 0 args, w/delay
@@ -179,14 +179,14 @@ void Display::sendCmd(uint8_t* buf, int len) {
     this->setDC(0);
     this->setCS(0);
 
-    auto result = HAL_SPI_Transmit(&hspi2, buf, 1, 1000);
+    HAL_SPI_Transmit(&hspi2, buf, 1, 1000);
 
     this->setDC(1);
 
     len--;
     buf++;
     if (len > 0) {
-        result = HAL_SPI_Transmit(&hspi2, buf, len, 1000);
+        HAL_SPI_Transmit(&hspi2, buf, len, 1000);
     }
 
     this->setCS(1);
@@ -214,8 +214,25 @@ void Display::draw() {
     this->setDC(1);
     this->setCS(0);
 
-    for (size_t i = 0; i < sizeof fb; i++) {
-	    *(volatile uint8_t*)&SPI2->DR = fb[i];
+    for (size_t i = 0; i < sizeof fb / sizeof (fb[0]); i++) {
+	    int x = i % DISPLAY_WIDTH;
+	    int y = i / DISPLAY_WIDTH;
+
+	    uint16_t pixel = fb[i];
+
+	    for (int i=0;i<spriteCount;i++) {
+		Sprite& sprite = sprites[i];
+
+		if (x > (sprite.getX() - 8) && x < (sprite.getX() + 8) &&
+		    y > (sprite.getY() - 8) && y < (sprite.getY() + 8) && 
+		    !sprite.isTransparent(sprite.getX() - x + 8, sprite.getY() - y + 8)) {
+		    pixel = sprite.getPixelAt(sprite.getX() - x + 8, sprite.getY() - y + 8);
+		}
+	    }
+
+	    *(volatile uint8_t*)&SPI2->DR = pixel >> 8;
+	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
+	    *(volatile uint8_t*)&SPI2->DR = pixel & 0xFF;
 	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
     }
 
@@ -223,10 +240,7 @@ void Display::draw() {
 }
 
 void Display::drawLogo() {
-    for (size_t i = 0; i < sizeof fb; i+=2) {
-	    fb[i] = rocketcat.pixel_data[i+1];
-	    fb[i+1] = rocketcat.pixel_data[i];
-    }
+    memcpy(fb, rocketcat.pixel_data, sizeof fb);
 }
 
 void Display::init() {
@@ -250,5 +264,15 @@ void Display::init() {
     memset(fb, 0, sizeof fb);
 
     drawLogo();
-    draw();
+    //draw();
+}
+
+Sprite& Display::getSprite(int index) {
+    return sprites[index];
+}
+
+Sprite& Display::newSprite(uint16_t transparency, uint16_t data[16*16]) {
+    sprites[spriteCount] = Sprite(transparency, data);
+
+    return sprites[spriteCount++];
 }

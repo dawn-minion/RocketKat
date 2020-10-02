@@ -21,6 +21,8 @@
 #include "main.h"
 #include "usb_device.h"
 #include "Display.h"
+#include "Sprite.h"
+#include "smile.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -114,11 +116,36 @@ int main(void)
   Display display;
 
   display.init();
+  
+  Sprite& sprite = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  sprite.setPosition(64, 80);
+
+  int x = 64;
+  int y = 80;
+
+  int state = 1;
+  display.draw();
   while (1)
   {
-    /* USER CODE END WHILE */
+    if (state == 1) {
+       x++;
+       y++;
 
-    /* USER CODE BEGIN 3 */
+       if (y >= 150) {
+         state = 0;
+       }
+    } else {
+       x--;
+       y--;
+
+       if (y <= 10) {
+         state = 1;
+       }
+    }
+
+    sprite.setPosition(x, y);
+    display.draw();
+    HAL_Delay(1);
   }
   /* USER CODE END 3 */
 }

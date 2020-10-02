@@ -1,5 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+#include <array>
+#include "Sprite.h"
+
 #define DISPLAY_WIDTH 160
 #define DISPLAY_HEIGHT 128
 
@@ -51,6 +55,9 @@
 
 class Display {
 private:
+    std::array<Sprite, 10> sprites;
+    int spriteCount = 0;
+
     void setCS(bool);
     void setDC(bool);
     void reset();
@@ -59,11 +66,11 @@ private:
     void sendCmdSeq(const uint8_t* buf);
     void configure(uint8_t madctl, uint32_t frmctrl);
     void setAddrWindow(int x, int y, int w, int h);
-    void draw();
-    void drawLogo();
-    void printch(int x, int y, int col, const uint8_t* fnt);
 
 public:
-    void print(int x, int y, int col, const char* text);
     void init();
+    void draw();
+    void drawLogo();
+    Sprite& getSprite(int index);
+    Sprite& newSprite(uint16_t transparency, uint16_t data[16*16]);
 };
