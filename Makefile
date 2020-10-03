@@ -22,7 +22,7 @@ TARGET = MeowbitRocketCat
 # debug build?
 DEBUG = 1
 # optimization
-OPT = -Os
+OPT = -O3
 
 
 #######################################
@@ -78,7 +78,8 @@ startup_stm32f401xe.s
 
 CPP_SOURCES = \
 Core/Src/Display.cpp \
-Core/Src/Sprite.cpp
+Core/Src/Sprite.cpp \
+Core/Src/MPU.cpp
 
 #######################################
 # binaries

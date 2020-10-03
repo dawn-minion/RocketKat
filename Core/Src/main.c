@@ -20,6 +20,10 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
+#include "Display.h"
+#include "Sprite.h"
+#include "smile.h"
+#include "MPU.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -109,15 +113,46 @@ int main(void)
 
   /* USER CODE END 2 */
 
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
+  display.init();
+  MPU6050.init();
+  
+  Sprite& spriteA = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  spriteA.setPosition(DISPLAY_WIDTH * (1.f/5.f) - 10, DISPLAY_HEIGHT * (1.f/5.f));
+  Sprite& spriteB = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  spriteB.setPosition(DISPLAY_WIDTH * (2.f/5.f) - 10, DISPLAY_HEIGHT * (2.f/5.f));
+  Sprite& spriteC = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  spriteC.setPosition(DISPLAY_WIDTH * (3.f/5.f) - 10, DISPLAY_HEIGHT * (3.f/5.f));
+  Sprite& spriteD = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  spriteD.setPosition(DISPLAY_WIDTH * (4.f/5.f) - 10, DISPLAY_HEIGHT * (4.f/5.f));
+  Sprite& spriteE = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  spriteE.setPosition(DISPLAY_WIDTH * (5.f/5.f) - 10, DISPLAY_HEIGHT * (5.f/5.f));
+
+  std::array<std::pair<Sprite*, bool>, 5> sprites = {
+	  std::make_pair(&spriteA, false),
+	  std::make_pair(&spriteB, false),
+	  std::make_pair(&spriteC, false),
+	  std::make_pair(&spriteD, false),
+	  std::make_pair(&spriteE, false)
+  };
+
+  display.draw();
   while (1)
   {
-    /* USER CODE END WHILE */
+    for (size_t i=0;i<sprites.size();i++) {
+	Sprite *sprite = sprites[i].first;
 
-    /* USER CODE BEGIN 3 */
+	if (sprite->getY() >= DISPLAY_HEIGHT - 10) {
+		sprites[i].second = false;
+	} else if (sprite->getY() <= 10) {
+		sprites[i].second = true;
+	}
+
+	sprite->setPosition(sprite->getX(), sprite->getY() + (sprites[i].second ? 1 : -1));
+    }
+    display.draw();
+
+    HAL_Delay(1);
   }
-  /* USER CODE END 3 */
 }
 
 /**
@@ -356,11 +391,11 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, FlashCS_Pin|DisplayRst_Pin|DisplayCS_Pin|DisplayBL_Pin
                           |LED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PC14 */
-  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  /*Configure GPIO pin : AccelInt_Pin */
+  GPIO_InitStruct.Pin = AccelInt_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  HAL_GPIO_Init(AccelInt_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : LightSensor_Pin BtnB_Pin Temperature_Pin SDDetect_Pin */
   GPIO_InitStruct.Pin = LightSensor_Pin|BtnB_Pin|Temperature_Pin|SDDetect_Pin;
