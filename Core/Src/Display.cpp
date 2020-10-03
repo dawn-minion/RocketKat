@@ -208,6 +208,8 @@ void Display::setAddrWindow(int x, int y, int w, int h) {
 }
 
 void Display::draw() {
+    if (dmaInProgress) return;
+
     char cmd[] = {ST7735_RAMWR};
     sendCmd(cmd, 1);
 
@@ -218,29 +220,24 @@ void Display::draw() {
 	    int x = i % DISPLAY_WIDTH;
 	    int y = i / DISPLAY_WIDTH;
 
-	    uint16_t pixel = fb[i];
+	    uint16_t pixel = background[i];
 
 	    for (int i=0;i<spriteCount;i++) {
 		Sprite& sprite = sprites[i];
 
 		if (x > (sprite.getX() - 8) && x < (sprite.getX() + 8) &&
 		    y > (sprite.getY() - 8) && y < (sprite.getY() + 8) && 
-		    !sprite.isTransparent(sprite.getX() - x + 8, sprite.getY() - y + 8)) {
-		    pixel = sprite.getPixelAt(sprite.getX() - x + 8, sprite.getY() - y + 8);
+		    !sprite.isTransparent(x - sprite.getX() + 8 - 1, y - sprite.getY() + 8 - 1)) {
+		    pixel = sprite.getPixelAt(x - sprite.getX() + 8 - 1 , y - sprite.getY() + 8 - 1);
 		}
 	    }
 
-	    *(volatile uint8_t*)&SPI2->DR = pixel >> 8;
-	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
-	    *(volatile uint8_t*)&SPI2->DR = pixel & 0xFF;
-	    while((SPI2->SR & (SPI_SR_TXE | SPI_SR_BSY)) != SPI_SR_TXE);
+	    // We're stored as little endian, but we're sending MSB first so flip the byte order
+	    fb[i] = (pixel >> 8) | (pixel & 0x00FF) << 8;
     }
 
-    this->setCS(1);
-}
-
-void Display::drawLogo() {
-    memcpy(fb, rocketcat.pixel_data, sizeof fb);
+    dmaInProgress = true;
+    HAL_SPI_Transmit_DMA(&hspi2, reinterpret_cast<uint8_t*>(fb), sizeof fb);
 }
 
 void Display::init() {
@@ -263,8 +260,7 @@ void Display::init() {
 
     memset(fb, 0, sizeof fb);
 
-    drawLogo();
-    //draw();
+    setBackground(reinterpret_cast<const uint16_t*>(rocketcat.pixel_data));
 }
 
 Sprite& Display::getSprite(int index) {
@@ -276,3 +272,20 @@ Sprite& Display::newSprite(uint16_t transparency, uint16_t data[16*16]) {
 
     return sprites[spriteCount++];
 }
+
+void Display::setBackground(const uint16_t* background) {
+    this->background = background;
+}
+
+void Display::dmaComplete() {
+    setCS(1);
+    dmaInProgress = false;
+}
+
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef* hspi) {
+     if (hspi == &hspi2) {
+         display.dmaComplete();
+     }
+}
+
+Display display;

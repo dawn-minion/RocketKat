@@ -20,9 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
-#include "Display.h"
-#include "Sprite.h"
-#include "smile.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -45,6 +42,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
+DMA_HandleTypeDef hdma_i2c1_rx;
 
 RTC_HandleTypeDef hrtc;
 
@@ -113,39 +111,11 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  Display display;
-
-  display.init();
-  
-  Sprite& sprite = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
-  sprite.setPosition(64, 80);
-
-  int x = 64;
-  int y = 80;
-
-  int state = 1;
-  display.draw();
   while (1)
   {
-    if (state == 1) {
-       x++;
-       y++;
+    /* USER CODE END WHILE */
 
-       if (y >= 150) {
-         state = 0;
-       }
-    } else {
-       x--;
-       y--;
-
-       if (y <= 10) {
-         state = 1;
-       }
-    }
-
-    sprite.setPosition(x, y);
-    display.draw();
-    HAL_Delay(1);
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -217,7 +187,7 @@ static void MX_I2C1_Init(void)
 
   /* USER CODE END I2C1_Init 1 */
   hi2c1.Instance = I2C1;
-  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.ClockSpeed = 400000;
   hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -355,6 +325,9 @@ static void MX_DMA_Init(void)
   __HAL_RCC_DMA1_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream0_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream0_IRQn);
   /* DMA1_Stream4_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Stream4_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Stream4_IRQn);
@@ -383,10 +356,14 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOB, FlashCS_Pin|DisplayRst_Pin|DisplayCS_Pin|DisplayBL_Pin
                           |LED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : AccelInt_Pin LightSensor_Pin BtnB_Pin Temperature_Pin
-                           SDDetect_Pin */
-  GPIO_InitStruct.Pin = AccelInt_Pin|LightSensor_Pin|BtnB_Pin|Temperature_Pin
-                          |SDDetect_Pin;
+  /*Configure GPIO pin : PC14 */
+  GPIO_InitStruct.Pin = GPIO_PIN_14;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LightSensor_Pin BtnB_Pin Temperature_Pin SDDetect_Pin */
+  GPIO_InitStruct.Pin = LightSensor_Pin|BtnB_Pin|Temperature_Pin|SDDetect_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
@@ -418,6 +395,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
 }
 

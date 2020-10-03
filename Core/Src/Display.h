@@ -57,6 +57,8 @@ class Display {
 private:
     std::array<Sprite, 10> sprites;
     int spriteCount = 0;
+    const uint16_t *background = nullptr;
+    bool dmaInProgress = false;
 
     void setCS(bool);
     void setDC(bool);
@@ -70,7 +72,10 @@ private:
 public:
     void init();
     void draw();
-    void drawLogo();
+    void setBackground(const uint16_t *background);
     Sprite& getSprite(int index);
     Sprite& newSprite(uint16_t transparency, uint16_t data[16*16]);
+    void dmaComplete();
 };
+
+extern Display display;
