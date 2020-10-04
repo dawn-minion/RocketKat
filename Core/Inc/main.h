@@ -61,8 +61,8 @@ void Error_Handler(void);
 #define AccelInt_Pin GPIO_PIN_13
 #define AccelInt_GPIO_Port GPIOC
 #define AccelInt_EXTI_IRQn EXTI15_10_IRQn
-#define LightSensor_Pin GPIO_PIN_2
-#define LightSensor_GPIO_Port GPIOC
+#define Light_Pin GPIO_PIN_2
+#define Light_GPIO_Port GPIOC
 #define BtnB_Pin GPIO_PIN_3
 #define BtnB_GPIO_Port GPIOC
 #define BtnDown_Pin GPIO_PIN_5
