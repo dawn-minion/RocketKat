@@ -4,7 +4,12 @@
 
 class MPUClass {
 private:
-	const uint16_t deviceAddress = 0x68;
+	bool dmaInProgress = false;
+
+	const uint16_t deviceAddress = 0x68 << 1;
+	const uint8_t accelConfigReg = 0x1C;
+	const uint8_t motionDetectReg = 0x1F;
+	const uint8_t motionDurationReg = 0x20;
 	const uint8_t intPinConfigReg = 0x37;
 	const uint8_t intEnableReg = 0x38;
 	const uint8_t userCtrlReg = 0x6A;
@@ -16,6 +21,7 @@ private:
 	void startRead();
 
 public:
+	void dmaComplete();
 	void init();
 	void readData();
 	void getAccelData(int16_t& x, int16_t& y, int16_t& z);

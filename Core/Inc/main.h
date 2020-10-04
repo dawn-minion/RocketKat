@@ -58,7 +58,7 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define AccelInt_Pin GPIO_PIN_14
+#define AccelInt_Pin GPIO_PIN_13
 #define AccelInt_GPIO_Port GPIOC
 #define AccelInt_EXTI_IRQn EXTI15_10_IRQn
 #define LightSensor_Pin GPIO_PIN_2

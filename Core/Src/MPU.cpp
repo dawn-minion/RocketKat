@@ -5,28 +5,46 @@
 extern I2C_HandleTypeDef hi2c1;
 
 void MPUClass::init() {
+	uint8_t reset = 1 << 7;
+	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, 0x6B, 1, &reset, 1, 1000);
+
+	HAL_Delay(50);
+
 	// Hold interrupt until read - clear on any read - active high - push pull output
-	uint8_t intPinConfig = 0x0C;
+	uint8_t intPinConfig = 0x20;
 	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, intPinConfigReg, 1, &intPinConfig, 1, 1000);
 	
+	// 5Hz update
+	uint8_t accelConfig = 0x1;
+	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, accelConfigReg, 1, &accelConfig, 1, 1000);
+	
 	// Interrupt only on new data ready
-	uint8_t intEnableConfig = 0x01;
+	uint8_t intEnableConfig = 0x1;
 	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, intEnableReg, 1, &intEnableConfig, 1, 1000);
-
-	// Disable FIFO and external interfaces
-	uint8_t userCtrlConfig = 0;
-	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, userCtrlReg, 1, &userCtrlConfig, 1, 1000);
 
 	readData();
 }
 
 void MPUClass::readData() {
-	HAL_I2C_Mem_Read_DMA(&hi2c1, deviceAddress, accelReg, 14, dmaData, sizeof dmaData);
+	if (!dmaInProgress) {
+		dmaInProgress = true;
+		HAL_I2C_Mem_Read_DMA(&hi2c1, deviceAddress, accelReg, 14, dmaData, sizeof dmaData);
+	}
+}
+
+void MPUClass::dmaComplete() {
+	dmaInProgress = false;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == AccelInt_Pin) {
 		MPU6050.readData();
+	}
+}
+
+void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
+	if (hi2c == &hi2c1) {
+		MPU6050.dmaComplete();
 	}
 }
 
