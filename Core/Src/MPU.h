@@ -8,15 +8,14 @@ private:
 
 	const uint16_t deviceAddress = 0x68 << 1;
 	const uint8_t accelConfigReg = 0x1C;
-	const uint8_t motionDetectReg = 0x1F;
-	const uint8_t motionDurationReg = 0x20;
 	const uint8_t intPinConfigReg = 0x37;
 	const uint8_t intEnableReg = 0x38;
-	const uint8_t userCtrlReg = 0x6A;
 	const uint8_t accelReg = 0x3B;
+
 	uint8_t dmaData[14] = {};
 	int16_t accelX = 0, accelY = 0, accelZ = 0;
 	int16_t gyroX = 0, gyroY = 0, gyroZ = 0;
+	int16_t dieTemp = 0;
 
 	void startRead();
 

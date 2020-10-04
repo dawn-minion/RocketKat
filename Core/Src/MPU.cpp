@@ -34,6 +34,18 @@ void MPUClass::readData() {
 
 void MPUClass::dmaComplete() {
 	dmaInProgress = false;
+
+	const int16_t* dmaConvData = reinterpret_cast<int16_t*>(dmaData);
+
+	accelX = dmaConvData[0];
+	accelY = dmaConvData[1];
+	accelZ = dmaConvData[2];
+
+	dieTemp = (dmaConvData[3] / 340) + 37;
+
+	gyroX = dmaConvData[4];
+	gyroY = dmaConvData[5];
+	gyroZ = dmaConvData[6];
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
@@ -42,7 +54,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	}
 }
 
-void HAL_I2C_MasterRxCpltCallback(I2C_HandleTypeDef *hi2c) {
+void HAL_I2C_MemRxCpltCallback(I2C_HandleTypeDef *hi2c) {
 	if (hi2c == &hi2c1) {
 		MPU6050.dmaComplete();
 	}
