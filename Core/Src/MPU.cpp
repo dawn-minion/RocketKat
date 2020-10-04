@@ -9,17 +9,19 @@ void MPUClass::init() {
 	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, 0x6B, 1, &reset, 1, 1000);
 
 	HAL_Delay(50);
+	
+	reset = 1;
+	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, 0x6B, 1, &reset, 1, 1000);
+	
+	reset = 7;
+	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, 0x68, 1, &reset, 1, 1000);
 
 	// Hold interrupt until read - clear on any read - active high - push pull output
 	uint8_t intPinConfig = 0x20;
 	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, intPinConfigReg, 1, &intPinConfig, 1, 1000);
 	
-	// 5Hz update
-	uint8_t accelConfig = 0x1;
-	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, accelConfigReg, 1, &accelConfig, 1, 1000);
-	
 	// Interrupt only on new data ready
-	uint8_t intEnableConfig = 0x1;
+	uint8_t intEnableConfig = 0xFF;
 	HAL_I2C_Mem_Write(&hi2c1, deviceAddress, intEnableReg, 1, &intEnableConfig, 1, 1000);
 
 	readData();
@@ -28,7 +30,7 @@ void MPUClass::init() {
 void MPUClass::readData() {
 	if (!dmaInProgress) {
 		dmaInProgress = true;
-		HAL_I2C_Mem_Read_DMA(&hi2c1, deviceAddress, accelReg, 14, dmaData, sizeof dmaData);
+		HAL_I2C_Mem_Read_DMA(&hi2c1, deviceAddress, accelReg, I2C_MEMADD_SIZE_8BIT, dmaData, sizeof dmaData);
 	}
 }
 
@@ -46,6 +48,18 @@ void MPUClass::dmaComplete() {
 	gyroX = dmaConvData[4];
 	gyroY = dmaConvData[5];
 	gyroZ = dmaConvData[6];
+}
+
+void MPUClass::getAccelData(int16_t& x, int16_t& y, int16_t& z) {
+	x = accelX;
+	y = accelY;
+	z = accelZ;
+}
+
+void MPUClass::getGyroData(int16_t& x, int16_t& y, int16_t& z) {
+	x = gyroX;
+	y = gyroY;
+	z = gyroZ;
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {

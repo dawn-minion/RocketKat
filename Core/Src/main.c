@@ -20,6 +20,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
+#include "usbd_cdc_if.h"
 #include "Display.h"
 #include "Sprite.h"
 #include "smile.h"
@@ -136,6 +137,8 @@ int main(void)
   };
 
   display.draw();
+
+  int ticks = 0;
   while (1)
   {
     for (size_t i=0;i<sprites.size();i++) {
@@ -150,6 +153,23 @@ int main(void)
 	sprite->setPosition(sprite->getX(), sprite->getY() + (sprites[i].second ? 1 : -1));
     }
     display.draw();
+
+    if (ticks++ >= 10) {
+	int16_t accelX, accelY, accelZ;
+	int16_t gyroX, gyroY, gyroZ;
+
+	MPU6050.getAccelData(accelX, accelY, accelZ);
+	MPU6050.getGyroData(gyroX, gyroY, gyroZ);
+
+	char output[256];
+
+	sprintf(output,
+		"Accel X: %d Y: %d Z: %d. Gyro X: %d Y: %d Z: %d\r\n",
+		accelX, accelY, accelZ, gyroX, gyroY, gyroZ);
+	CDC_Transmit_FS(output, strlen(output));
+
+	ticks = 0;
+    }
 
     HAL_Delay(1);
   }
