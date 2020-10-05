@@ -80,7 +80,8 @@ startup_stm32f401xe.s
 CPP_SOURCES = \
 Core/Src/Display.cpp \
 Core/Src/Sprite.cpp \
-Core/Src/MPU.cpp
+Core/Src/MPU.cpp \
+Core/Src/System.cpp
 
 #######################################
 # binaries
