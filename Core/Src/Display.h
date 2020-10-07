@@ -74,7 +74,7 @@ public:
     void draw();
     void setBackground(const uint16_t *background);
     Sprite& getSprite(int index);
-    Sprite& newSprite(uint16_t transparency, uint16_t data[16*16]);
+    Sprite& newSprite(uint16_t transparency, uint16_t *data, int height, int width);
     void dmaComplete();
 };
 

@@ -2,12 +2,13 @@
 #include <string.h>
 
 Sprite::Sprite() {
-	memset(imageData, 0, sizeof imageData);
 }
 
-Sprite::Sprite(uint16_t transparency, uint16_t data[16*16]) {
+Sprite::Sprite(uint16_t transparency, uint16_t* data, int height, int width) {
 	this->transparency = transparency;
-	memcpy(imageData, data, sizeof imageData);
+	imageData = data;
+	this->height = height;
+	this->width = width;
 }
 
 void Sprite::setPosition(int x, int y) {
@@ -24,9 +25,26 @@ int Sprite::getY() {
 }
 
 uint16_t Sprite::getPixelAt(int x, int y) {
+	if (x > this->width || y > this->height) {
+		return 0;
+	}
+
 	return imageData[(x + (y * 16))];
 }
 
 bool Sprite::isTransparent(int x, int y) {
 	return getPixelAt(x, y) == transparency;
+}
+
+bool Sprite::withinBounds(int x, int y) {
+	return x > (this->x - (width / 2)) && x < (this->x + (width / 2)) &&
+		   y > (this->y - (height / 2)) && y < (this->y + (height / 2));
+}
+
+int Sprite::getHeight() {
+	return height;
+}
+
+int Sprite::getWidth() {
+	return width;
 }

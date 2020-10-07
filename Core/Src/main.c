@@ -127,16 +127,16 @@ int main(void)
   display.init();
   MPU6050.init();
   System.init();
-  
-  Sprite& spriteA = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+
+  Sprite& spriteA = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
   spriteA.setPosition(DISPLAY_WIDTH * (1.f/5.f) - 10, DISPLAY_HEIGHT * (1.f/5.f));
-  Sprite& spriteB = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  Sprite& spriteB = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
   spriteB.setPosition(DISPLAY_WIDTH * (2.f/5.f) - 10, DISPLAY_HEIGHT * (2.f/5.f));
-  Sprite& spriteC = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  Sprite& spriteC = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
   spriteC.setPosition(DISPLAY_WIDTH * (3.f/5.f) - 10, DISPLAY_HEIGHT * (3.f/5.f));
-  Sprite& spriteD = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  Sprite& spriteD = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
   spriteD.setPosition(DISPLAY_WIDTH * (4.f/5.f) - 10, DISPLAY_HEIGHT * (4.f/5.f));
-  Sprite& spriteE = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data);
+  Sprite& spriteE = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
   spriteE.setPosition(DISPLAY_WIDTH * (5.f/5.f) - 10, DISPLAY_HEIGHT * (5.f/5.f));
 
   std::array<std::pair<Sprite*, bool>, 5> sprites = {
