@@ -41,6 +41,13 @@ bool Sprite::withinBounds(int x, int y) {
 		   y > (this->y - (height / 2)) && y < (this->y + (height / 2));
 }
 
+bool Sprite::isCollision(Sprite& sprite) {
+	return sprite.withinBounds(getX() - (getWidth() / 2), getY() + (getHeight() / 2)) ||
+		   sprite.withinBounds(getX() + (getWidth() / 2), getY() + (getHeight() / 2)) ||
+		   sprite.withinBounds(getX() - (getWidth() / 2), getY() - (getHeight() / 2)) ||
+		   sprite.withinBounds(getX() + (getWidth() / 2), getY() - (getHeight() / 2));
+}
+
 int Sprite::getHeight() {
 	return height;
 }

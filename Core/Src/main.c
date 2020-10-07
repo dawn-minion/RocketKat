@@ -125,6 +125,7 @@ int main(void)
   /* USER CODE END 2 */
 
   display.init();
+  display.draw();
   MPU6050.init();
   System.init();
 
@@ -146,8 +147,6 @@ int main(void)
 	  std::make_pair(&spriteD, false),
 	  std::make_pair(&spriteE, false)
   };
-
-  display.draw();
 
   int ticks = 0;
   while (1)

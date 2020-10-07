@@ -18,6 +18,7 @@ public:
 	int getHeight();
 	int getWidth();
 	bool withinBounds(int x, int y);
+	bool isCollision(Sprite& sprite);
 	uint16_t getPixelAt(int x, int y);
 	bool isTransparent(int x, int y);
 };
