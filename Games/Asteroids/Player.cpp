@@ -9,17 +9,15 @@ Player::Player() :
 }
 
 void Player::tick() {
-    if (System.buttonIsPressed(Buttons::Up)) {
-        yVel -= 1;
-    } else if (System.buttonIsPressed(Buttons::Down)) {
-        yVel += 1;
+    if (System.buttonIsPressed(Buttons::Up) && yVel > -3.f) {
+        yVel -= 0.001;
+    } else if (System.buttonIsPressed(Buttons::Down) && yVel < 3.f) {
+        yVel += 0.001;
     }
 
-    Sprite::tick();
-
-    if (getY() > DISPLAY_HEIGHT) {
-        setPosition(getX(), 0);
-    } else if (getY() < 0) {
-        setPosition(getX(), DISPLAY_HEIGHT);
+    if (getY() >= DISPLAY_HEIGHT) {
+        setPosition(getX(), 1);
+    } else if (getY() <= 0) {
+        setPosition(getX(), DISPLAY_HEIGHT - 1);
     }
 }

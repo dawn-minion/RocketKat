@@ -11,14 +11,18 @@ void Asteroids::play() {
 
     sprites.push_back(std::make_unique<Player>());
 
+    uint32_t lastTick = HAL_GetTick();
+
     while (1) {
-        static_cast<Player*>(sprites[0].get())->tick();
+        if (HAL_GetTick() != lastTick) {
+            static_cast<Player*>(sprites[0].get())->tick();
 
-        for (auto &sprite : sprites) {
-            sprite->tick();
+            for (auto &sprite : sprites) {
+                sprite->tick();
+            }
+
+            display.draw(sprites);
+            lastTick = HAL_GetTick();
         }
-
-        display.draw(sprites);
-        HAL_Delay(50);
     }
 }

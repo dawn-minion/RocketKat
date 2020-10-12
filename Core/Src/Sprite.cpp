@@ -8,7 +8,7 @@ Sprite::Sprite(uint16_t transparency, const uint16_t* data, int height, int widt
 	this->width = width;
 }
 
-void Sprite::setPosition(int x, int y) {
+void Sprite::setPosition(float x, float y) {
 	this->x = x;
 	this->y = y;
 }
@@ -18,6 +18,14 @@ int Sprite::getX() {
 }
 
 int Sprite::getY() {
+	return y;
+}
+
+float Sprite::getXf() {
+	return x;
+}
+
+float Sprite::getYf() {
 	return y;
 }
 
@@ -54,5 +62,5 @@ int Sprite::getWidth() {
 }
 
 void Sprite::tick() {
-	setPosition(getX() + xVel, getY() + yVel);
+	setPosition(getXf() + xVel, getYf() + yVel);
 }
