@@ -1,4 +1,14 @@
 #include <stdint.h>
+#include "main.h"
+
+enum class Buttons {
+	A,
+	B,
+	Up,
+	Down,
+	Left,
+	Right
+};
 
 class SystemClass {
 private:
@@ -13,6 +23,7 @@ public:
 	void getData();
 	uint16_t getLightValue();
 	float getTemperature();
+	bool buttonIsPressed(Buttons button);
 };
 
 extern SystemClass System;

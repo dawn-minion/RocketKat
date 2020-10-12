@@ -1,10 +1,7 @@
 #include "Sprite.h"
 #include <string.h>
 
-Sprite::Sprite() {
-}
-
-Sprite::Sprite(uint16_t transparency, uint16_t* data, int height, int width) {
+Sprite::Sprite(uint16_t transparency, const uint16_t* data, int height, int width) {
 	this->transparency = transparency;
 	imageData = data;
 	this->height = height;
@@ -54,4 +51,8 @@ int Sprite::getHeight() {
 
 int Sprite::getWidth() {
 	return width;
+}
+
+void Sprite::tick() {
+	setPosition(getX() + xVel, getY() + yVel);
 }

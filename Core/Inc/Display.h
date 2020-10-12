@@ -1,7 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include <array>
+#include <vector>
+#include <memory>
 #include "Sprite.h"
 
 #define DISPLAY_WIDTH 160
@@ -55,8 +56,6 @@
 
 class Display {
 private:
-    std::array<Sprite, 10> sprites;
-    int spriteCount = 0;
     const uint16_t *background = nullptr;
     bool dmaInProgress = false;
 
@@ -72,9 +71,8 @@ private:
 public:
     void init();
     void draw();
+    void draw(std::vector<std::unique_ptr<Sprite>>&);
     void setBackground(const uint16_t *background);
-    Sprite& getSprite(int index);
-    Sprite& newSprite(uint16_t transparency, uint16_t *data, int height, int width);
     void dmaComplete();
 };
 

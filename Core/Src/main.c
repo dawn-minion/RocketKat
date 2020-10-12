@@ -21,11 +21,9 @@
 #include "main.h"
 #include "usb_device.h"
 #include "Display.h"
-#include "Sprite.h"
-#include "smile.h"
 #include "MPU.h"
-#include "usbd_cdc_if.h"
 #include "System.h"
+#include "Asteroids.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -129,60 +127,8 @@ int main(void)
   MPU6050.init();
   System.init();
 
-  Sprite& spriteA = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
-  spriteA.setPosition(DISPLAY_WIDTH * (1.f/5.f) - 10, DISPLAY_HEIGHT * (1.f/5.f));
-  Sprite& spriteB = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
-  spriteB.setPosition(DISPLAY_WIDTH * (2.f/5.f) - 10, DISPLAY_HEIGHT * (2.f/5.f));
-  Sprite& spriteC = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
-  spriteC.setPosition(DISPLAY_WIDTH * (3.f/5.f) - 10, DISPLAY_HEIGHT * (3.f/5.f));
-  Sprite& spriteD = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
-  spriteD.setPosition(DISPLAY_WIDTH * (4.f/5.f) - 10, DISPLAY_HEIGHT * (4.f/5.f));
-  Sprite& spriteE = display.newSprite(0xFFFF, (uint16_t*)smile.pixel_data, 16, 16);
-  spriteE.setPosition(DISPLAY_WIDTH * (5.f/5.f) - 10, DISPLAY_HEIGHT * (5.f/5.f));
-
-  std::array<std::pair<Sprite*, bool>, 5> sprites = {
-	  std::make_pair(&spriteA, false),
-	  std::make_pair(&spriteB, false),
-	  std::make_pair(&spriteC, false),
-	  std::make_pair(&spriteD, false),
-	  std::make_pair(&spriteE, false)
-  };
-
-  int ticks = 0;
-  while (1)
-  {
-    for (size_t i=0;i<sprites.size();i++) {
-	Sprite *sprite = sprites[i].first;
-
-	if (sprite->getY() >= DISPLAY_HEIGHT - 10) {
-		sprites[i].second = false;
-	} else if (sprite->getY() <= 10) {
-		sprites[i].second = true;
-	}
-
-	sprite->setPosition(sprite->getX(), sprite->getY() + (sprites[i].second ? 1 : -1));
-    }
-    display.draw();
-
-    if (ticks++ >= 10) {
-	int16_t accelX, accelY, accelZ;
-	int16_t gyroX, gyroY, gyroZ;
-
-	MPU6050.getAccelData(accelX, accelY, accelZ);
-	MPU6050.getGyroData(gyroX, gyroY, gyroZ);
-
-	char output[256];
-
-	sprintf(output,
-		"Accel X: %d Y: %d Z: %d. Gyro X: %d Y: %d Z: %d\r\n",
-		accelX, accelY, accelZ, gyroX, gyroY, gyroZ);
-	CDC_Transmit_FS(output, strlen(output));
-
-	ticks = 0;
-    }
-
-    HAL_Delay(1);
-  }
+  Asteroids asteroids;
+  asteroids.play();
 }
 
 /**
@@ -457,15 +403,14 @@ static void MX_TIM11_Init(void)
   htim11.Init.Prescaler = (SystemCoreClock / 1000) - 1;
   htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
   htim11.Init.Period = 100 - 1;
-  htim11.Init.ClockDivision = 0;
+  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV4;
   htim11.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim11) != HAL_OK)
   {
     Error_Handler();
   }
-
   /* USER CODE BEGIN TIM11_Init 2 */
-  HAL_TIM_Base_Start_IT(&htim11);
+
   /* USER CODE END TIM11_Init 2 */
 
 }
@@ -509,11 +454,11 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, BtnDown_Pin|BtnUp_Pin|DisplayDC_Pin|SDCS_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, FlashCS_Pin|DisplayRst_Pin|DisplayCS_Pin|DisplayBL_Pin
                           |LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOA, DisplayDC_Pin|SDCS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : AccelInt_Pin */
   GPIO_InitStruct.Pin = AccelInt_Pin;
@@ -521,24 +466,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(AccelInt_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BtnB_Pin SDDetect_Pin */
-  GPIO_InitStruct.Pin = BtnB_Pin|SDDetect_Pin;
+  /*Configure GPIO pin : BtnB_Pin */
+  GPIO_InitStruct.Pin = BtnB_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(BtnB_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : BtnDown_Pin BtnUp_Pin DisplayDC_Pin SDCS_Pin */
-  GPIO_InitStruct.Pin = BtnDown_Pin|BtnUp_Pin|DisplayDC_Pin|SDCS_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  /*Configure GPIO pins : BtnDown_Pin BtnUp_Pin BtnLeft_Pin */
+  GPIO_InitStruct.Pin = BtnDown_Pin|BtnUp_Pin|BtnLeft_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : BtnLeft_Pin */
-  GPIO_InitStruct.Pin = BtnLeft_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(BtnLeft_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : FlashCS_Pin DisplayRst_Pin DisplayCS_Pin DisplayBL_Pin
                            LED_Pin */
@@ -552,8 +490,21 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pins : BtnRight_Pin BtnA_Pin */
   GPIO_InitStruct.Pin = BtnRight_Pin|BtnA_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SDDetect_Pin */
+  GPIO_InitStruct.Pin = SDDetect_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(SDDetect_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : DisplayDC_Pin SDCS_Pin */
+  GPIO_InitStruct.Pin = DisplayDC_Pin|SDCS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);

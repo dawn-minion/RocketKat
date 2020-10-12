@@ -217,19 +217,37 @@ void Display::draw() {
     this->setCS(0);
 
     for (size_t i = 0; i < sizeof fb / sizeof (fb[0]); i++) {
+	    uint16_t pixel = background[i];
+
+	    // We're stored as little endian, but we're sending MSB first so flip the byte order
+	    fb[i] = (pixel >> 8) | (pixel & 0x00FF) << 8;
+    }
+
+    dmaInProgress = true;
+    HAL_SPI_Transmit_DMA(&hspi2, reinterpret_cast<uint8_t*>(fb), sizeof fb);
+}
+
+void Display::draw(std::vector<std::unique_ptr<Sprite>>& sprites) {
+    if (dmaInProgress) return;
+
+    char cmd[] = {ST7735_RAMWR};
+    sendCmd(cmd, 1);
+
+    this->setDC(1);
+    this->setCS(0);
+
+    for (size_t i = 0; i < sizeof fb / sizeof (fb[0]); i++) {
 	    int x = i % DISPLAY_WIDTH;
 	    int y = i / DISPLAY_WIDTH;
 
 	    uint16_t pixel = background[i];
 
-	    for (int i=0;i<spriteCount;i++) {
-			Sprite& sprite = sprites[i];
-
-			if (sprite.withinBounds(x, y) &&
-				!sprite.isTransparent(x - sprite.getX() + (sprite.getWidth() / 2) - 1, y - sprite.getY() + 8 - 1)) {
-				pixel = sprite.getPixelAt(
-					x - sprite.getX() + (sprite.getWidth() / 2) - 1,
-					y - sprite.getY() + (sprite.getHeight() / 2) - 1
+	    for (auto &sprite : sprites) {
+			if (sprite->withinBounds(x, y) &&
+				!sprite->isTransparent(x - sprite->getX() + (sprite->getWidth() / 2) - 1, y - sprite->getY() + 8 - 1)) {
+				pixel = sprite->getPixelAt(
+					x - sprite->getX() + (sprite->getWidth() / 2) - 1,
+					y - sprite->getY() + (sprite->getHeight() / 2) - 1
 				);
 			}
 	    }
@@ -263,16 +281,6 @@ void Display::init() {
     memset(fb, 0, sizeof fb);
 
     setBackground(reinterpret_cast<const uint16_t*>(rocketcat.pixel_data));
-}
-
-Sprite& Display::getSprite(int index) {
-    return sprites[index];
-}
-
-Sprite& Display::newSprite(uint16_t transparency, uint16_t *data, int height, int width) {
-    sprites[spriteCount] = Sprite(transparency, data, height, width);
-
-    return sprites[spriteCount++];
 }
 
 void Display::setBackground(const uint16_t* background) {
