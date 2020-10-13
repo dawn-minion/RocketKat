@@ -29,10 +29,10 @@ void SystemClass::getData() {
 bool SystemClass::buttonIsPressed(Buttons button) {
 	switch(button) {
 		case Buttons::A: {
-			return static_cast<bool>(HAL_GPIO_ReadPin(BtnA_GPIO_Port, BtnA_Pin));
+			return !static_cast<bool>(HAL_GPIO_ReadPin(BtnA_GPIO_Port, BtnA_Pin));
 		}
 		case Buttons::B: {
-			return static_cast<bool>(HAL_GPIO_ReadPin(BtnB_GPIO_Port, BtnB_Pin));
+			return !static_cast<bool>(HAL_GPIO_ReadPin(BtnB_GPIO_Port, BtnB_Pin));
 		}
 		case Buttons::Up: {
 			return !static_cast<bool>(HAL_GPIO_ReadPin(BtnUp_GPIO_Port, BtnUp_Pin));
@@ -41,10 +41,10 @@ bool SystemClass::buttonIsPressed(Buttons button) {
 			return !static_cast<bool>(HAL_GPIO_ReadPin(BtnDown_GPIO_Port, BtnDown_Pin));
 		}
 		case Buttons::Left: {
-			return static_cast<bool>(HAL_GPIO_ReadPin(BtnLeft_GPIO_Port, BtnLeft_Pin));
+			return !static_cast<bool>(HAL_GPIO_ReadPin(BtnLeft_GPIO_Port, BtnLeft_Pin));
 		}
 		case Buttons::Right: {
-			return static_cast<bool>(HAL_GPIO_ReadPin(BtnRight_GPIO_Port, BtnRight_Pin));
+			return !static_cast<bool>(HAL_GPIO_ReadPin(BtnRight_GPIO_Port, BtnRight_Pin));
 		}
 	}
 
