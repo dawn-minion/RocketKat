@@ -48,10 +48,35 @@ bool Sprite::withinBounds(int x, int y) {
 }
 
 bool Sprite::isCollision(Sprite& sprite) {
-	return sprite.withinBounds(getX() - (getWidth() / 2), getY() + (getHeight() / 2)) ||
-		   sprite.withinBounds(getX() + (getWidth() / 2), getY() + (getHeight() / 2)) ||
-		   sprite.withinBounds(getX() - (getWidth() / 2), getY() - (getHeight() / 2)) ||
-		   sprite.withinBounds(getX() + (getWidth() / 2), getY() - (getHeight() / 2));
+	auto centerX = getWidth() / 2;
+	auto centerY = getHeight() / 2;
+	bool withinBox = sprite.withinBounds(getX() - centerX, getY() + centerY) ||
+		   sprite.withinBounds(getX() + centerX, getY() + centerY) ||
+		   sprite.withinBounds(getX() - centerX, getY() - centerY) ||
+		   sprite.withinBounds(getX() + centerX, getY() - centerY);
+
+	if (withinBox) {
+		for (int x = 0; x < getWidth(); x++) {
+			for (int y = 0; y < getHeight(); y++) {
+				if (isTransparent(x, y)) {
+					continue;
+				}
+
+				int windowX = getX() - centerX + x;
+				int windowY = getY() - centerY + y;
+				int otherX = sprite.getX() - windowX + sprite.getWidth() / 2;
+				int otherY = sprite.getY() - windowY + sprite.getHeight() / 2;
+
+				if (otherX >= 0 && otherX < sprite.getWidth() &&
+					otherY >= 0 && otherY < sprite.getHeight() &&
+					!sprite.isTransparent(otherX, otherY)) {
+					return true;
+				}
+			}
+		}
+	}
+
+	return false;
 }
 
 int Sprite::getHeight() {
@@ -75,4 +100,14 @@ void Sprite::tick() {
     } else if (getX() <= 0) {
         setPosition(DISPLAY_WIDTH - 1, getY());
     }
+}
+
+bool Sprite::isAlive() {
+	return alive;
+}
+
+void Sprite::destroy() {
+    xVel = 0;
+    yVel = 0;
+    alive = false;
 }

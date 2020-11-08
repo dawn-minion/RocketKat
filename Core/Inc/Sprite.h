@@ -9,6 +9,7 @@ protected:
 	int height = 0, width = 0;
 	const uint16_t *imageData = nullptr;
 	uint16_t transparency = 0;
+	bool alive = true;
 
 public:
 	Sprite(uint16_t transparency, const uint16_t *data, int height, int width);
@@ -24,4 +25,6 @@ public:
 	uint16_t getPixelAt(int x, int y) __attribute__((pure));
 	bool isTransparent(int x, int y) __attribute__((pure));
 	void tick();
+	bool isAlive();
+	void destroy();
 };
