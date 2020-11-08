@@ -40,6 +40,8 @@ void Player::rotate()
 }
 
 void Player::tick() {
+    Sprite::tick();
+
     if (System.buttonIsPressed(Buttons::Up) && yVel > -3.f) {
         yVel -= 0.001 * cos(rotationAngle/180.0 * M_PI);
         xVel += 0.001 * sin(rotationAngle/180.0 * M_PI);
@@ -57,16 +59,5 @@ void Player::tick() {
 
     if (rotationAngle > 360 || rotationAngle < -360) {
         rotationAngle = 0.f;
-    }
-
-    if (getY() >= DISPLAY_HEIGHT) {
-        setPosition(getX(), 1);
-    } else if (getY() <= 0) {
-        setPosition(getX(), DISPLAY_HEIGHT - 1);
-    }
-    if (getX() >= DISPLAY_WIDTH) {
-        setPosition(1, getY());
-    } else if (getX() <= 0) {
-        setPosition(DISPLAY_WIDTH - 1, getY());
     }
 }

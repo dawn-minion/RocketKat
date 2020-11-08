@@ -2,6 +2,7 @@
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_hal_gpio.h"
 #include <math.h>
+#include <stdlib.h>
 
 extern ADC_HandleTypeDef hadc1;
 
@@ -13,6 +14,11 @@ void SystemClass::dmaComplete() {
 	float sensor = 4096.f * 10000 / static_cast<uint16_t>(adcData[0] >> 16) - 10000;
 	temperature = (1.0 / ((logf(sensor / 10000) / 3300) + (1.0 / (25 + 273.5)))) - 273.5
 ;
+
+	if (light == 0) {
+		srand(adcData[0] & 0xFFFF);
+	}
+
 	light = static_cast<uint16_t>(adcData[0] & 0xFFFF);
 
 	dmaInProgress = false;
@@ -49,6 +55,10 @@ bool SystemClass::buttonIsPressed(Buttons button) {
 	}
 
 	return false;
+}
+
+uint16_t SystemClass::randInRange(uint16_t n) {
+	return rand() / (RAND_MAX / n + 1);
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {

@@ -1,27 +1,26 @@
-#include <memory>
 #include "Asteroids.h"
 #include "Sprite.h"
 #include "Player.h"
+#include "Asteroid.h"
 #include "Display.h"
-#include "vector"
 #include "stm32f4xx_hal.h"
 
 void Asteroids::play() {
-    std::vector<std::unique_ptr<Sprite>> sprites;
+    Player player;
+    Asteroid asteroid1, asteroid2, asteroid3;
 
-    sprites.push_back(std::make_unique<Player>());
+    Sprite *sprites[4] = {&player, &asteroid1, &asteroid2, &asteroid3};
 
     uint32_t lastTick = HAL_GetTick();
 
     while (1) {
-        if (HAL_GetTick() != lastTick) {
-            static_cast<Player*>(sprites[0].get())->tick();
+        if (HAL_GetTick() >= lastTick + 2) {
+            player.tick();
+            asteroid1.tick();
+            asteroid2.tick();
+            asteroid3.tick();
 
-            for (auto &sprite : sprites) {
-                sprite->tick();
-            }
-
-            display.draw(sprites);
+            display.draw(&sprites[0], sizeof (sprites) / sizeof (sprites[0]));
             lastTick = HAL_GetTick();
         }
     }

@@ -1,8 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <vector>
-#include <memory>
+#include <stddef.h>
 #include "Sprite.h"
 
 #define DISPLAY_WIDTH 160
@@ -71,9 +70,10 @@ private:
 public:
     void init();
     void draw();
-    void draw(std::vector<std::unique_ptr<Sprite>>&);
+    void draw(Sprite** sprites, size_t len);
     void setBackground(const uint16_t *background);
     void dmaComplete();
+    void waitForDraw();
 };
 
 extern Display display;

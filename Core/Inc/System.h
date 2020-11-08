@@ -26,6 +26,7 @@ public:
 	uint16_t getLightValue();
 	float getTemperature();
 	bool buttonIsPressed(Buttons button);
+	uint16_t randInRange(uint16_t n);
 };
 
 extern SystemClass System;

@@ -227,7 +227,7 @@ void Display::draw() {
     HAL_SPI_Transmit_DMA(&hspi2, reinterpret_cast<uint8_t*>(fb), sizeof fb);
 }
 
-void Display::draw(std::vector<std::unique_ptr<Sprite>>& sprites) {
+void Display::draw(Sprite** sprites, size_t len) {
     if (dmaInProgress) return;
 
     char cmd[] = {ST7735_RAMWR};
@@ -237,24 +237,37 @@ void Display::draw(std::vector<std::unique_ptr<Sprite>>& sprites) {
     this->setCS(0);
 
     for (size_t i = 0; i < sizeof fb / sizeof (fb[0]); i++) {
-	    int x = i % DISPLAY_WIDTH;
-	    int y = i / DISPLAY_WIDTH;
-
 	    uint16_t pixel = background[i];
-
-	    for (auto &sprite : sprites) {
-			if (sprite->withinBounds(x, y) &&
-				!sprite->isTransparent(x - sprite->getX() + (sprite->getWidth() / 2) - 1, y - sprite->getY() + 8 - 1)) {
-				pixel = sprite->getPixelAt(
-					x - sprite->getX() + (sprite->getWidth() / 2) - 1,
-					y - sprite->getY() + (sprite->getHeight() / 2) - 1
-				);
-			}
-	    }
 
 	    // We're stored as little endian, but we're sending MSB first so flip the byte order
 	    fb[i] = (pixel >> 8) | (pixel & 0x00FF) << 8;
     }
+
+	for (int i=0; i< len; i++) {
+		Sprite* sprite = sprites[i];
+		auto spriteX = sprite->getX();
+		auto spriteY = sprite->getY();
+		auto centerX = sprite->getWidth() / 2;
+		auto centerY = sprite->getHeight() / 2;
+
+		for (int x=0; x < sprite->getWidth(); x++) {
+			for (int y=0; y < sprite->getHeight(); y++) {
+				if (sprite->isTransparent(x, y)) {
+					continue;
+				}
+
+				auto arrayPos = (spriteX - centerX + x) + ((spriteY - centerY + y) * DISPLAY_WIDTH);
+
+				if (arrayPos < 0 || arrayPos > sizeof fb / sizeof (fb[0])) {
+					continue;
+				}
+
+				uint16_t pixel = sprite->getPixelAt(x, y);
+				fb[arrayPos] = (pixel >> 8) | (pixel & 0x00FF) << 8;
+			}
+		}
+	}
+
 
     dmaInProgress = true;
     HAL_SPI_Transmit_DMA(&hspi2, reinterpret_cast<uint8_t*>(fb), sizeof fb);

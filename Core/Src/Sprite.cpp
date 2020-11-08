@@ -1,4 +1,5 @@
 #include "Sprite.h"
+#include "Display.h"
 #include <string.h>
 
 Sprite::Sprite(uint16_t transparency, const uint16_t* data, int height, int width) {
@@ -34,7 +35,7 @@ uint16_t Sprite::getPixelAt(int x, int y) {
 		return 0;
 	}
 
-	return imageData[(x + (y * 16))];
+	return imageData[(x + (y * this->width))];
 }
 
 bool Sprite::isTransparent(int x, int y) {
@@ -63,4 +64,15 @@ int Sprite::getWidth() {
 
 void Sprite::tick() {
 	setPosition(getXf() + xVel, getYf() + yVel);
+
+    if (getY() >= DISPLAY_HEIGHT) {
+        setPosition(getX(), 1);
+    } else if (getY() <= 0) {
+        setPosition(getX(), DISPLAY_HEIGHT - 1);
+    }
+    if (getX() >= DISPLAY_WIDTH) {
+        setPosition(1, getY());
+    } else if (getX() <= 0) {
+        setPosition(DISPLAY_WIDTH - 1, getY());
+    }
 }

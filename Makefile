@@ -83,7 +83,8 @@ Core/Src/Sprite.cpp \
 Core/Src/MPU.cpp \
 Core/Src/System.cpp \
 Games/Asteroids.cpp \
-Games/Asteroids/Player.cpp
+Games/Asteroids/Player.cpp \
+Games/Asteroids/Asteroid.cpp
 
 #######################################
 # binaries
